@@ -28,18 +28,7 @@ function App() {
 
   const [editDesc, setEditDesc] = useState(false);
 
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-
-  // ================= RESPONSIVE =================
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const isMobile = windowWidth <= 480;
-
-  // ================= SAVE TO LOCAL STORAGE =================
+  // ===== SAVE TO LOCAL STORAGE =====
   useEffect(() => {
     localStorage.setItem("likes", likes);
   }, [likes]);
@@ -56,7 +45,7 @@ function App() {
     localStorage.setItem("description", description);
   }, [description]);
 
-  // ================= LOGIN =================
+  // ===== LOGIN =====
   const handleLogin = () => {
     if (inputUser.trim() !== "") {
       setUser(inputUser.trim());
@@ -68,36 +57,20 @@ function App() {
     localStorage.removeItem("user");
   };
 
-  // ================= COMMENT =================
+  // ===== COMMENT =====
   const handleAddComment = () => {
     if (newComment.trim() !== "") {
-      setComments([
-        ...comments,
-        { name: user, text: newComment },
-      ]);
+      setComments([...comments, { name: user, text: newComment }]);
       setNewComment("");
     }
   };
 
-  // ================= RESPONSIVE STYLE =================
-  const dynamicCard = {
-    ...card,
-    padding: isMobile ? "20px" : "30px",
-    maxWidth: isMobile ? "100%" : "420px",
-  };
-
-  const dynamicIconSize = isMobile ? 70 : 100;
-
-  const dynamicFont = {
-    fontSize: isMobile ? "13px" : "15px",
-  };
-
-  // ================= LOGIN PAGE =================
+  // ===== LOGIN PAGE =====
   if (!user) {
     return (
       <div style={container}>
-        <div style={dynamicCard}>
-          <h2 style={{ textAlign: "center" }}>🔐 Login</h2>
+        <div style={card}>
+          <h2 style={titleCenter}>🔐 Login</h2>
           <input
             type="text"
             placeholder="Masukkan nama..."
@@ -113,30 +86,29 @@ function App() {
     );
   }
 
-  // ================= MAIN PAGE =================
+  // ===== MAIN PAGE =====
   return (
     <div style={container}>
-      <div style={dynamicCard}>
+      <div style={card}>
         <div style={topBar}>
-          <h2>🌟 Web Apresiasi 🌟</h2>
+          <h2 style={{ margin: 0 }}>🌟 Web Apresiasi</h2>
           <button onClick={handleLogout} style={logoutBtn}>
             <FaSignOutAlt />
           </button>
         </div>
 
-        <div style={{ textAlign: "center" }}>
-          <FaUserCircle size={dynamicIconSize} color="#667eea" />
+        <div style={profileSection}>
+          <FaUserCircle style={avatarIcon} />
 
-          <h3 style={{ marginTop: "10px" }}>
+          <h3 style={{ margin: "10px 0 5px" }}>
             {user.charAt(0).toUpperCase() + user.slice(1)}
           </h3>
 
-          {/* ================= EDITABLE DESCRIPTION ================= */}
           {!editDesc ? (
-            <p style={{ color: "#555", ...dynamicFont }}>
+            <p style={descriptionText}>
               {description}
               <FaEdit
-                style={{ marginLeft: "8px", cursor: "pointer" }}
+                style={editIcon}
                 onClick={() => setEditDesc(true)}
               />
             </p>
@@ -166,7 +138,7 @@ function App() {
 
         <hr style={{ margin: "25px 0" }} />
 
-        <h3>💬 Komentar</h3>
+        <h3 style={{ marginBottom: "10px" }}>💬 Komentar</h3>
 
         <div style={commentBox}>
           <input
@@ -183,9 +155,7 @@ function App() {
 
         <div style={{ marginTop: "15px" }}>
           {comments.length === 0 && (
-            <p style={{ color: "#777" }}>
-              Belum ada komentar...
-            </p>
+            <p style={{ color: "#777" }}>Belum ada komentar...</p>
           )}
 
           {comments.map((c, index) => (
@@ -194,7 +164,7 @@ function App() {
                 {c.name.charAt(0).toUpperCase() +
                   c.name.slice(1)}
               </b>
-              <p style={{ margin: "5px 0 0 0" }}>{c.text}</p>
+              <p style={{ margin: "5px 0 0" }}>{c.text}</p>
             </div>
           ))}
         </div>
@@ -203,68 +173,100 @@ function App() {
   );
 }
 
-/* ================= STYLE ================= */
+/* ================= STYLE RESPONSIVE CLEAN ================= */
 
 const container = {
   minHeight: "100vh",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
+  padding: "20px",
   background: "linear-gradient(135deg, #667eea, #764ba2)",
-  padding: "15px",
 };
 
 const card = {
-  background: "rgba(255,255,255,0.95)",
-  borderRadius: "20px",
   width: "100%",
-  boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+  maxWidth: "500px",
+  background: "white",
+  borderRadius: "20px",
+  padding: "30px",
+  boxShadow: "0 15px 40px rgba(0,0,0,0.15)",
+  boxSizing: "border-box",
+};
+
+const topBar = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+};
+
+const profileSection = {
+  textAlign: "center",
+};
+
+const avatarIcon = {
+  fontSize: "90px",
+  color: "#667eea",
+};
+
+const descriptionText = {
+  color: "#555",
+  fontSize: "15px",
+};
+
+const editIcon = {
+  marginLeft: "8px",
+  cursor: "pointer",
+  fontSize: "14px",
 };
 
 const input = {
-  padding: "12px",
   width: "100%",
+  padding: "12px",
   borderRadius: "10px",
-  border: "1px solid #ccc",
+  border: "1px solid #ddd",
   marginBottom: "10px",
+  fontSize: "14px",
+  boxSizing: "border-box",
 };
 
 const textarea = {
   width: "100%",
   padding: "10px",
   borderRadius: "10px",
-  border: "1px solid #ccc",
+  border: "1px solid #ddd",
   marginBottom: "10px",
   minHeight: "70px",
+  boxSizing: "border-box",
 };
 
 const primaryBtn = {
-  padding: "10px",
   width: "100%",
+  padding: "12px",
   borderRadius: "10px",
   border: "none",
   background: "#667eea",
   color: "white",
-  cursor: "pointer",
   fontWeight: "bold",
-  marginTop: "5px",
+  cursor: "pointer",
 };
 
 const likeBtn = {
   marginTop: "15px",
-  padding: "10px 20px",
+  padding: "10px 25px",
   borderRadius: "50px",
   border: "none",
   background: "#ff4d6d",
   color: "white",
   cursor: "pointer",
+  fontSize: "14px",
 };
 
 const logoutBtn = {
   background: "transparent",
   border: "none",
-  cursor: "pointer",
   fontSize: "18px",
+  cursor: "pointer",
 };
 
 const commentBox = {
@@ -273,17 +275,14 @@ const commentBox = {
 };
 
 const commentItem = {
-  background: "#f4f4f4",
+  background: "#f5f5f5",
   padding: "10px",
   borderRadius: "10px",
   marginBottom: "10px",
 };
 
-const topBar = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: "20px",
+const titleCenter = {
+  textAlign: "center",
 };
 
 export default App;

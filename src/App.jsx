@@ -13,7 +13,7 @@ function App() {
   }, [likes]);
 
   const handleLike = () => {
-    setLikes(likes + 1);
+    setLikes((prev) => prev + 1);
   };
 
   const handleImageUpload = (e) => {
@@ -23,103 +23,37 @@ function App() {
     }
   };
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
-
   return (
-    <div style={darkMode ? darkContainer : lightContainer}>
-      <div style={cardStyle}>
-        <div style={topBar}>
+    <div className={darkMode ? "container dark" : "container"}>
+      <div className="card">
+        <div className="top">
           <h2>🌟 Web Apresiasi Profil</h2>
-          <button onClick={toggleDarkMode} style={iconBtn}>
+          <button onClick={() => setDarkMode(!darkMode)} className="iconBtn">
             {darkMode ? <FaSun /> : <FaMoon />}
           </button>
         </div>
 
-        <div style={{ textAlign: "center" }}>
+        <div className="profile">
           {image ? (
-            <img src={image} alt="profile" style={imgStyle} />
+            <img src={image} alt="profile" />
           ) : (
             <FaUserCircle size={120} />
           )}
 
           <h3>Rahmaniarti</h3>
-          <p>Mahasiswa kreatif, inovatif, dan berprestasi di bidang teknologi.</p>
+          <p>
+            Mahasiswa kreatif, inovatif, dan berprestasi di bidang teknologi.
+          </p>
 
           <input type="file" onChange={handleImageUpload} />
 
-          <div style={{ marginTop: "20px" }}>
-            <button onClick={handleLike} style={likeBtn}>
-              <FaHeart /> Like ({likes})
-            </button>
-          </div>
+          <button onClick={handleLike} className="likeBtn">
+            <FaHeart /> {likes} Apresiasi
+          </button>
         </div>
       </div>
     </div>
   );
 }
-
-/* ===== STYLE ===== */
-
-const lightContainer = {
-  minHeight: "100vh",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  background: "linear-gradient(135deg, #667eea, #764ba2)",
-  transition: "0.5s",
-};
-
-const darkContainer = {
-  ...lightContainer,
-  background: "linear-gradient(135deg, #1e1e2f, #121212)",
-};
-
-const cardStyle = {
-  background: "rgba(255,255,255,0.15)",
-  backdropFilter: "blur(15px)",
-  padding: "30px",
-  borderRadius: "20px",
-  width: "350px",
-  color: "white",
-  boxShadow: "0 8px 30px rgba(0,0,0,0.3)",
-  transition: "0.5s",
-};
-
-const imgStyle = {
-  width: "120px",
-  height: "120px",
-  borderRadius: "50%",
-  objectFit: "cover",
-  marginBottom: "10px",
-  transition: "0.3s",
-};
-
-const likeBtn = {
-  padding: "10px 20px",
-  background: "#ff4d6d",
-  border: "none",
-  borderRadius: "10px",
-  color: "white",
-  cursor: "pointer",
-  fontSize: "16px",
-  transition: "0.3s",
-};
-
-const iconBtn = {
-  background: "transparent",
-  border: "none",
-  color: "white",
-  fontSize: "20px",
-  cursor: "pointer",
-};
-
-const topBar = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: "20px",
-};
 
 export default App;

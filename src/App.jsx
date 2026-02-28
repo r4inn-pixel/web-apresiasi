@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import {
-  FaHeart,
   FaUserCircle,
   FaSignOutAlt,
   FaEdit,
@@ -28,7 +27,8 @@ function App() {
 
   const [editDesc, setEditDesc] = useState(false);
 
-  // ===== SAVE TO LOCAL STORAGE =====
+  /* ================= SAVE TO LOCAL STORAGE ================= */
+
   useEffect(() => {
     localStorage.setItem("likes", likes);
   }, [likes]);
@@ -45,7 +45,8 @@ function App() {
     localStorage.setItem("description", description);
   }, [description]);
 
-  // ===== LOGIN =====
+  /* ================= LOGIN ================= */
+
   const handleLogin = () => {
     if (inputUser.trim() !== "") {
       setUser(inputUser.trim());
@@ -57,7 +58,8 @@ function App() {
     localStorage.removeItem("user");
   };
 
-  // ===== COMMENT =====
+  /* ================= COMMENT ================= */
+
   const handleAddComment = () => {
     if (newComment.trim() !== "") {
       setComments([...comments, { name: user, text: newComment }]);
@@ -65,12 +67,14 @@ function App() {
     }
   };
 
-  // ===== LOGIN PAGE =====
+  /* ================= LOGIN PAGE ================= */
+
   if (!user) {
     return (
       <div style={container}>
         <div style={card}>
           <h2 style={titleCenter}>🔐 Login</h2>
+
           <input
             type="text"
             placeholder="Masukkan nama..."
@@ -78,6 +82,7 @@ function App() {
             onChange={(e) => setInputUser(e.target.value)}
             style={input}
           />
+
           <button onClick={handleLogin} style={primaryBtn}>
             Masuk
           </button>
@@ -86,7 +91,8 @@ function App() {
     );
   }
 
-  // ===== MAIN PAGE =====
+  /* ================= MAIN PAGE ================= */
+
   return (
     <div style={container}>
       <div style={card}>
@@ -148,6 +154,7 @@ function App() {
             onChange={(e) => setNewComment(e.target.value)}
             style={input}
           />
+
           <button onClick={handleAddComment} style={primaryBtn}>
             Kirim
           </button>
@@ -173,20 +180,23 @@ function App() {
   );
 }
 
-/* ================= STYLE RESPONSIVE CLEAN ================= */
+/* ================= STYLE RESPONSIVE ================= */
 
 const container = {
   minHeight: "100vh",
+  width: "100%",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
   padding: "20px",
+  boxSizing: "border-box",
   background: "linear-gradient(135deg, #667eea, #764ba2)",
 };
 
 const card = {
   width: "100%",
   maxWidth: "500px",
+  margin: "0 auto",
   background: "white",
   borderRadius: "20px",
   padding: "30px",

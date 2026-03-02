@@ -4,67 +4,113 @@ import {
   FaSignOutAlt,
   FaEdit,
   FaSave,
+  FaTrash,
 } from "react-icons/fa";
 
 function App() {
-  const [user, setUser] = useState(localStorage.getItem("user") || "");
+  const [user, setUser] = useState(localStorage.getItem("activeUser") || "");
   const [inputUser, setInputUser] = useState("");
-
-  const [likes, setLikes] = useState(
-    Number(localStorage.getItem("likes")) || 0
+  const [usersData, setUsersData] = useState(
+    JSON.parse(localStorage.getItem("users")) || {}
   );
 
-  const [comments, setComments] = useState(
-    JSON.parse(localStorage.getItem("comments")) || []
-  );
-
-  const [newComment, setNewComment] = useState("");
-
-  const [description, setDescription] = useState(
-    localStorage.getItem("description") ||
-      "Mahasiswa kreatif dan inovatif di bidang teknologi."
-  );
+  const activeUserData = usersData[user] || {
+    likes: 0,
+    comments: [],
+    description: "Mahasiswa kreatif dan inovatif di bidang teknologi.",
+    avatar: "",
+  };
 
   const [editDesc, setEditDesc] = useState(false);
+  const [newComment, setNewComment] = useState("");
 
   /* ================= SAVE TO LOCAL STORAGE ================= */
 
   useEffect(() => {
-    localStorage.setItem("likes", likes);
-  }, [likes]);
+    localStorage.setItem("users", JSON.stringify(usersData));
+  }, [usersData]);
 
   useEffect(() => {
-    localStorage.setItem("comments", JSON.stringify(comments));
-  }, [comments]);
-
-  useEffect(() => {
-    localStorage.setItem("user", user);
+    localStorage.setItem("activeUser", user);
   }, [user]);
-
-  useEffect(() => {
-    localStorage.setItem("description", description);
-  }, [description]);
 
   /* ================= LOGIN ================= */
 
   const handleLogin = () => {
-    if (inputUser.trim() !== "") {
-      setUser(inputUser.trim());
+    if (inputUser.trim() === "") return;
+
+    const username = inputUser.trim().toLowerCase();
+
+    if (!usersData[username]) {
+      setUsersData({
+        ...usersData,
+        [username]: {
+          likes: 0,
+          comments: [],
+          description:
+            "Mahasiswa kreatif dan inovatif di bidang teknologi.",
+          avatar: "",
+        },
+      });
     }
+
+    setUser(username);
+    setInputUser("");
   };
 
   const handleLogout = () => {
     setUser("");
-    localStorage.removeItem("user");
+    localStorage.removeItem("activeUser");
+  };
+
+  /* ================= UPDATE USER ================= */
+
+  const updateUserData = (newData) => {
+    setUsersData({
+      ...usersData,
+      [user]: {
+        ...activeUserData,
+        ...newData,
+      },
+    });
+  };
+
+  /* ================= AVATAR ================= */
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      updateUserData({ avatar: reader.result });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveAvatar = () => {
+    updateUserData({ avatar: "" });
+  };
+
+  /* ================= LIKE ================= */
+
+  const handleLike = () => {
+    updateUserData({ likes: activeUserData.likes + 1 });
   };
 
   /* ================= COMMENT ================= */
 
   const handleAddComment = () => {
-    if (newComment.trim() !== "") {
-      setComments([...comments, { name: user, text: newComment }]);
-      setNewComment("");
-    }
+    if (newComment.trim() === "") return;
+
+    updateUserData({
+      comments: [
+        ...activeUserData.comments,
+        { name: user, text: newComment },
+      ],
+    });
+
+    setNewComment("");
   };
 
   /* ================= LOGIN PAGE ================= */
@@ -104,15 +150,38 @@ function App() {
         </div>
 
         <div style={profileSection}>
-          <FaUserCircle style={avatarIcon} />
+          {/* FOTO PROFIL */}
+          {activeUserData.avatar ? (
+            <>
+              <img
+                src={activeUserData.avatar}
+                alt="avatar"
+                style={avatarImage}
+              />
+              <button onClick={handleRemoveAvatar} style={removeBtn}>
+                <FaTrash /> Hapus Foto
+              </button>
+            </>
+          ) : (
+            <FaUserCircle style={avatarIcon} />
+          )}
 
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleAvatarChange}
+            style={{ marginTop: "10px" }}
+          />
+
+          {/* NAMA USER */}
           <h3 style={{ margin: "10px 0 5px" }}>
             {user.charAt(0).toUpperCase() + user.slice(1)}
           </h3>
 
+          {/* DESKRIPSI */}
           {!editDesc ? (
             <p style={descriptionText}>
-              {description}
+              {activeUserData.description}
               <FaEdit
                 style={editIcon}
                 onClick={() => setEditDesc(true)}
@@ -121,8 +190,10 @@ function App() {
           ) : (
             <>
               <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                value={activeUserData.description}
+                onChange={(e) =>
+                  updateUserData({ description: e.target.value })
+                }
                 style={textarea}
               />
               <button
@@ -134,11 +205,8 @@ function App() {
             </>
           )}
 
-          <button
-            onClick={() => setLikes(likes + 1)}
-            style={likeBtn}
-          >
-            ❤️ {likes}
+          <button onClick={handleLike} style={likeBtn}>
+            ❤️ {activeUserData.likes}
           </button>
         </div>
 
@@ -161,11 +229,11 @@ function App() {
         </div>
 
         <div style={{ marginTop: "15px" }}>
-          {comments.length === 0 && (
+          {activeUserData.comments.length === 0 && (
             <p style={{ color: "#777" }}>Belum ada komentar...</p>
           )}
 
-          {comments.map((c, index) => (
+          {activeUserData.comments.map((c, index) => (
             <div key={index} style={commentItem}>
               <b>
                 {c.name.charAt(0).toUpperCase() +
@@ -180,28 +248,24 @@ function App() {
   );
 }
 
-/* ================= STYLE RESPONSIVE ================= */
+/* ================= STYLE ================= */
 
 const container = {
   minHeight: "100vh",
-  width: "100%",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
   padding: "20px",
-  boxSizing: "border-box",
   background: "linear-gradient(135deg, #667eea, #764ba2)",
 };
 
 const card = {
   width: "100%",
   maxWidth: "500px",
-  margin: "0 auto",
   background: "white",
   borderRadius: "20px",
   padding: "30px",
   boxShadow: "0 15px 40px rgba(0,0,0,0.15)",
-  boxSizing: "border-box",
 };
 
 const topBar = {
@@ -210,19 +274,30 @@ const topBar = {
   alignItems: "center",
 };
 
-const profileSection = {
-  textAlign: "center",
+const profileSection = { textAlign: "center" };
+
+const avatarIcon = { fontSize: "90px", color: "#667eea" };
+
+const avatarImage = {
+  width: "90px",
+  height: "90px",
+  borderRadius: "50%",
+  objectFit: "cover",
+  border: "3px solid #667eea",
 };
 
-const avatarIcon = {
-  fontSize: "90px",
-  color: "#667eea",
+const removeBtn = {
+  marginTop: "10px",
+  padding: "6px 12px",
+  borderRadius: "8px",
+  border: "none",
+  background: "#dc3545",
+  color: "white",
+  cursor: "pointer",
+  fontSize: "12px",
 };
 
-const descriptionText = {
-  color: "#555",
-  fontSize: "15px",
-};
+const descriptionText = { color: "#555", fontSize: "15px" };
 
 const editIcon = {
   marginLeft: "8px",
@@ -236,8 +311,6 @@ const input = {
   borderRadius: "10px",
   border: "1px solid #ddd",
   marginBottom: "10px",
-  fontSize: "14px",
-  boxSizing: "border-box",
 };
 
 const textarea = {
@@ -247,7 +320,6 @@ const textarea = {
   border: "1px solid #ddd",
   marginBottom: "10px",
   minHeight: "70px",
-  boxSizing: "border-box",
 };
 
 const primaryBtn = {
@@ -269,7 +341,6 @@ const likeBtn = {
   background: "#ff4d6d",
   color: "white",
   cursor: "pointer",
-  fontSize: "14px",
 };
 
 const logoutBtn = {
@@ -279,10 +350,7 @@ const logoutBtn = {
   cursor: "pointer",
 };
 
-const commentBox = {
-  display: "flex",
-  flexDirection: "column",
-};
+const commentBox = { display: "flex", flexDirection: "column" };
 
 const commentItem = {
   background: "#f5f5f5",
@@ -291,8 +359,6 @@ const commentItem = {
   marginBottom: "10px",
 };
 
-const titleCenter = {
-  textAlign: "center",
-};
+const titleCenter = { textAlign: "center" };
 
 export default App;

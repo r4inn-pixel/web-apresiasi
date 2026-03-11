@@ -24,8 +24,6 @@ function App() {
   const [editDesc, setEditDesc] = useState(false);
   const [newComment, setNewComment] = useState("");
 
-  /* ================= SAVE TO LOCAL STORAGE ================= */
-
   useEffect(() => {
     localStorage.setItem("users", JSON.stringify(usersData));
   }, [usersData]);
@@ -33,8 +31,6 @@ function App() {
   useEffect(() => {
     localStorage.setItem("activeUser", user);
   }, [user]);
-
-  /* ================= LOGIN ================= */
 
   const handleLogin = () => {
     if (inputUser.trim() === "") return;
@@ -63,8 +59,6 @@ function App() {
     localStorage.removeItem("activeUser");
   };
 
-  /* ================= UPDATE USER ================= */
-
   const updateUserData = (newData) => {
     setUsersData({
       ...usersData,
@@ -74,8 +68,6 @@ function App() {
       },
     });
   };
-
-  /* ================= AVATAR ================= */
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
@@ -92,13 +84,9 @@ function App() {
     updateUserData({ avatar: "" });
   };
 
-  /* ================= LIKE ================= */
-
   const handleLike = () => {
     updateUserData({ likes: activeUserData.likes + 1 });
   };
-
-  /* ================= COMMENT ================= */
 
   const handleAddComment = () => {
     if (newComment.trim() === "") return;
@@ -112,8 +100,6 @@ function App() {
 
     setNewComment("");
   };
-
-  /* ================= LOGIN PAGE ================= */
 
   if (!user) {
     return (
@@ -136,8 +122,6 @@ function App() {
       </div>
     );
   }
-
-  /* ================= MAIN PAGE ================= */
 
   return (
     <div style={container}>
@@ -247,8 +231,6 @@ function App() {
     </div>
   );
 }
-
-/* ================= STYLE ================= */
 
 const container = {
   minHeight: "100vh",

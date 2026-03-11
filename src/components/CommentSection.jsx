@@ -1,126 +1,106 @@
 import { useState } from "react";
 import { useStore } from "../store/useStore";
-import { FaTrash } from "react-icons/fa";
 
 function CommentSection() {
   const user = useStore((state) => state.user);
   const usersData = useStore((state) => state.usersData);
   const updateUser = useStore((state) => state.updateUser);
 
-  const [newComment, setNewComment] = useState("");
+  const [comment, setComment] = useState("");
 
-  const activeUserData = usersData[user] || {};
+  const comments = usersData[user]?.comments || [];
 
-  const handleAddComment = () => {
-    if (newComment.trim() === "") return;
+  const addComment = () => {
+    if (comment.trim() === "") return;
 
     updateUser({
-      comments: [
-        ...activeUserData.comments,
-        { name: user, text: newComment },
-      ],
+      comments: [...comments, { name: user, text: comment }],
     });
 
-    setNewComment("");
+    setComment("");
   };
 
-  // fungsi hapus komentar
-  const handleDeleteComment = (index) => {
-    const updatedComments = activeUserData.comments.filter(
-      (_, i) => i !== index
-    );
-
+  // --- FUNGSI BARU: DELETE COMMENT ---
+  const deleteComment = (indexToDelete) => {
+    const updatedComments = comments.filter((_, index) => index !== indexToDelete);
+    
     updateUser({
       comments: updatedComments,
     });
   };
 
   return (
-    <div>
-      <h3 style={{ marginBottom: "10px" }}>💬 Komentar</h3>
+    <div style={{ marginTop: "20px" }}>
+      <h3>💬 Komentar</h3>
 
-      <div style={commentBox}>
-        <input
-          type="text"
-          placeholder="Tulis komentar..."
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          style={input}
-        />
+      <input
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        placeholder="Tulis komentar..."
+        style={{
+          padding: "10px",
+          borderRadius: "8px",
+          border: "1px solid #ddd",
+          width: "100%",
+          marginBottom: "10px",
+          boxSizing: "border-box" // Menjaga padding tidak merusak lebar
+        }}
+      />
 
-        <button onClick={handleAddComment} style={primaryBtn}>
-          Kirim
-        </button>
-      </div>
+      <button
+        onClick={addComment}
+        style={{
+          padding: "10px 20px",
+          background: "#667eea",
+          color: "white",
+          border: "none",
+          borderRadius: "8px",
+          cursor: "pointer",
+        }}
+      >
+        Kirim
+      </button>
 
-      <div style={{ marginTop: "15px" }}>
-        {activeUserData.comments?.length === 0 && (
-          <p style={{ color: "#777" }}>Belum ada komentar...</p>
-        )}
-
-        {activeUserData.comments?.map((c, index) => (
-          <div key={index} style={commentItem}>
-            <div style={commentHeader}>
-              <b>{c.name.charAt(0).toUpperCase() + c.name.slice(1)}</b>
-
-              <button
-                onClick={() => handleDeleteComment(index)}
-                style={deleteBtn}
-              >
-                <FaTrash />
-              </button>
+      <div style={{ marginTop: "10px" }}>
+        {comments.map((c, i) => (
+          <div
+            key={i}
+            style={{
+              background: "#f5f5f5",
+              padding: "10px",
+              borderRadius: "8px",
+              marginTop: "5px",
+              display: "flex", // Menggunakan flexbox agar tombol di kanan
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+            }}
+          >
+            <div>
+              <b style={{ color: "#4a5568" }}>{c.name}</b>
+              <p style={{ margin: "5px 0 0 0" }}>{c.text}</p>
             </div>
 
-            <p style={{ margin: "5px 0 0" }}>{c.text}</p>
+            {/* TOMBOL HAPUS */}
+            <button
+              onClick={() => deleteComment(i)}
+              style={{
+                background: "#fc8181",
+                color: "white",
+                border: "none",
+                borderRadius: "5px",
+                padding: "5px 10px",
+                fontSize: "12px",
+                cursor: "pointer",
+                marginLeft: "10px"
+              }}
+            >
+              Hapus
+            </button>
           </div>
         ))}
       </div>
     </div>
   );
 }
-
-const input = {
-  width: "100%",
-  padding: "12px",
-  borderRadius: "10px",
-  border: "1px solid #ddd",
-  marginBottom: "10px",
-};
-
-const primaryBtn = {
-  width: "100%",
-  padding: "12px",
-  borderRadius: "10px",
-  border: "none",
-  background: "#667eea",
-  color: "white",
-  fontWeight: "bold",
-  cursor: "pointer",
-};
-
-const commentBox = {
-  display: "flex",
-  flexDirection: "column",
-};
-
-const commentItem = {
-  background: "#f5f5f5",
-  padding: "10px",
-  borderRadius: "10px",
-  marginBottom: "10px",
-};
-
-const commentHeader = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-};
-
-const deleteBtn = {
-  background: "transparent",
-  border: "none",
-  cursor: "pointer",
-  color: "#ff4d6d",
-};
 
 export default CommentSection;

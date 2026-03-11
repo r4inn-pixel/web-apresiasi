@@ -10,6 +10,7 @@ function CommentSection() {
 
   const comments = usersData[user]?.comments || [];
 
+  // TAMBAH KOMENTAR
   const addComment = () => {
     if (comment.trim() === "") return;
 
@@ -20,10 +21,12 @@ function CommentSection() {
     setComment("");
   };
 
-  // --- FUNGSI BARU: DELETE COMMENT ---
+  // HAPUS KOMENTAR
   const deleteComment = (indexToDelete) => {
-    const updatedComments = comments.filter((_, index) => index !== indexToDelete);
-    
+    const updatedComments = comments.filter(
+      (_, index) => index !== indexToDelete
+    );
+
     updateUser({
       comments: updatedComments,
     });
@@ -43,7 +46,7 @@ function CommentSection() {
           border: "1px solid #ddd",
           width: "100%",
           marginBottom: "10px",
-          boxSizing: "border-box" // Menjaga padding tidak merusak lebar
+          boxSizing: "border-box",
         }}
       />
 
@@ -61,7 +64,7 @@ function CommentSection() {
         Kirim
       </button>
 
-      <div style={{ marginTop: "10px" }}>
+      <div style={{ marginTop: "15px" }}>
         {comments.map((c, i) => (
           <div
             key={i}
@@ -69,10 +72,10 @@ function CommentSection() {
               background: "#f5f5f5",
               padding: "10px",
               borderRadius: "8px",
-              marginTop: "5px",
-              display: "flex", // Menggunakan flexbox agar tombol di kanan
+              marginTop: "8px",
+              display: "flex",
               justifyContent: "space-between",
-              alignItems: "flex-start",
+              alignItems: "center",
             }}
           >
             <div>
@@ -80,22 +83,23 @@ function CommentSection() {
               <p style={{ margin: "5px 0 0 0" }}>{c.text}</p>
             </div>
 
-            {/* TOMBOL HAPUS */}
-            <button
-              onClick={() => deleteComment(i)}
-              style={{
-                background: "#fc8181",
-                color: "white",
-                border: "none",
-                borderRadius: "5px",
-                padding: "5px 10px",
-                fontSize: "12px",
-                cursor: "pointer",
-                marginLeft: "10px"
-              }}
-            >
-              Hapus
-            </button>
+            {/* Tombol hapus hanya untuk komentar milik user */}
+            {c.name === user && (
+              <button
+                onClick={() => deleteComment(i)}
+                style={{
+                  background: "#ff4d6d",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "6px",
+                  padding: "5px 10px",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                }}
+              >
+                Hapus
+              </button>
+            )}
           </div>
         ))}
       </div>

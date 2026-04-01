@@ -2,106 +2,86 @@ import { useState } from "react";
 import { useStore } from "../store/useStore";
 
 function CommentSection() {
-  const user = useStore((state) => state.user);
-  const usersData = useStore((state) => state.usersData);
-  const updateUser = useStore((state) => state.updateUser);
+  const [text, setText] = useState("");
 
-  const [comment, setComment] = useState("");
+  const user = useStore((s) => s.user);
+  const comments = useStore((s) => s.usersData[user]?.comments || []);
+  const addComment = useStore((s) => s.addComment);
+  const deleteComment = useStore((s) => s.deleteComment);
 
-  const comments = usersData[user]?.comments || [];
-
-  // TAMBAH KOMENTAR
-  const addComment = () => {
-    if (comment.trim() === "") return;
-
-    updateUser({
-      comments: [...comments, { name: user, text: comment }],
-    });
-
-    setComment("");
-  };
-
-  // HAPUS KOMENTAR
-  const deleteComment = (indexToDelete) => {
-    const updatedComments = comments.filter(
-      (_, index) => index !== indexToDelete
-    );
-
-    updateUser({
-      comments: updatedComments,
-    });
+  const handleSubmit = () => {
+    if (!text.trim()) return;
+    addComment(text);
+    setText("");
   };
 
   return (
-    <div style={{ marginTop: "20px" }}>
-      <h3>💬 Komentar</h3>
+    <div style={{ marginTop: "30px" }}>
+      <h3>Komentar</h3>
 
       <input
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
         placeholder="Tulis komentar..."
         style={{
           padding: "10px",
+          width: "250px",
+          marginRight: "10px",
           borderRadius: "8px",
-          border: "1px solid #ddd",
-          width: "100%",
-          marginBottom: "10px",
-          boxSizing: "border-box",
+          border: "1px solid #ccc",
         }}
       />
 
       <button
-        onClick={addComment}
+        onClick={handleSubmit}
         style={{
-          padding: "10px 20px",
-          background: "#667eea",
-          color: "white",
+          padding: "10px 16px",
           border: "none",
           borderRadius: "8px",
+          backgroundColor: "#4caf50",
+          color: "white",
           cursor: "pointer",
         }}
       >
         Kirim
       </button>
 
-      <div style={{ marginTop: "15px" }}>
-        {comments.map((c, i) => (
-          <div
-            key={i}
-            style={{
-              background: "#f5f5f5",
-              padding: "10px",
-              borderRadius: "8px",
-              marginTop: "8px",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <div>
-              <b style={{ color: "#4a5568" }}>{c.name}</b>
-              <p style={{ margin: "5px 0 0 0" }}>{c.text}</p>
-            </div>
+      <div style={{ marginTop: "20px" }}>
+        {comments.length === 0 ? (
+          <p>Belum ada komentar.</p>
+        ) : (
+          comments.map((c, i) => (
+            <div
+              key={i}
+              style={{
+                background: "#f5f5f5",
+                padding: "12px",
+                margin: "10px auto",
+                borderRadius: "10px",
+                width: "300px",
+              }}
+            >
+              <b>{c.name}</b>
+              <p>{c.text}</p>
 
-            {/* Tombol hapus hanya untuk komentar milik user */}
-            {c.name === user && (
-              <button
-                onClick={() => deleteComment(i)}
-                style={{
-                  background: "#ff4d6d",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "6px",
-                  padding: "5px 10px",
-                  cursor: "pointer",
-                  fontSize: "12px",
-                }}
-              >
-                Hapus
-              </button>
-            )}
-          </div>
-        ))}
+              {c.name === user && (
+                <button
+                  onClick={() => deleteComment(i)}
+                  style={{
+                    padding: "6px 12px",
+                    border: "none",
+                    borderRadius: "6px",
+                    backgroundColor: "#e53935",
+                    color: "white",
+                    cursor: "pointer",
+                  }}
+                >
+                  Hapus
+                </button>
+              )}
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

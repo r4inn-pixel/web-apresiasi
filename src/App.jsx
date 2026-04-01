@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import {
   FaUserCircle,
   FaSignOutAlt,
@@ -7,93 +9,106 @@ import {
   FaTrash,
 } from "react-icons/fa";
 
+// --- STORE ZUSTAND ---
+const useStore = create(
+  persist(
+    (set, get) => ({
+      user: null,
+      usersData: {},
+
+      login: (username) => {
+        const name = username.trim().toLowerCase();
+
+        set((state) => {
+          const newUsers = { ...state.usersData };
+
+          if (!newUsers[name]) {
+            newUsers[name] = {
+              likes: 0,
+              comments: [],
+              description:
+                "Mahasiswa kreatif dan inovatif di bidang teknologi.",
+              avatar: "",
+            };
+          }
+
+          return { user: name, usersData: newUsers };
+        });
+      },
+
+      logout: () => set({ user: null }),
+
+      updateUser: (newData) => {
+        const { user, usersData } = get();
+
+        set({
+          usersData: {
+            ...usersData,
+            [user]: { ...usersData[user], ...newData },
+          },
+        });
+      },
+    }),
+    { name: "web-apresiasi-storage" }
+  )
+);
+
+// --- APP ---
 function App() {
-  const [user, setUser] = useState(localStorage.getItem("activeUser") || "");
+  const { user, usersData, login, logout, updateUser } = useStore();
+
   const [inputUser, setInputUser] = useState("");
-  const [usersData, setUsersData] = useState(
-    JSON.parse(localStorage.getItem("users")) || {}
-  );
-
-  const activeUserData = usersData[user] || {
-    likes: 0,
-    comments: [],
-    description: "Mahasiswa kreatif dan inovatif di bidang teknologi.",
-    avatar: "",
-  };
-
   const [editDesc, setEditDesc] = useState(false);
   const [newComment, setNewComment] = useState("");
 
-  useEffect(() => {
-    localStorage.setItem("users", JSON.stringify(usersData));
-  }, [usersData]);
+  const activeUserData = usersData[user] || {};
 
+  // --- DEBUG STORE DI CONSOLE ---
   useEffect(() => {
-    localStorage.setItem("activeUser", user);
-  }, [user]);
+    window.store = useStore;
+
+    console.log(
+      "STORE SAAT INI:",
+      JSON.stringify(useStore.getState(), null, 2)
+    );
+
+    const unsub = useStore.subscribe((state) => {
+      console.log(
+        "STORE UPDATE:",
+        JSON.stringify(state, null, 2)
+      );
+    });
+
+    return () => unsub();
+  }, []);
 
   const handleLogin = () => {
-    if (inputUser.trim() === "") return;
-
-    const username = inputUser.trim().toLowerCase();
-
-    if (!usersData[username]) {
-      setUsersData({
-        ...usersData,
-        [username]: {
-          likes: 0,
-          comments: [],
-          description:
-            "Mahasiswa kreatif dan inovatif di bidang teknologi.",
-          avatar: "",
-        },
-      });
+    if (inputUser.trim()) {
+      login(inputUser);
+      setInputUser("");
     }
-
-    setUser(username);
-    setInputUser("");
-  };
-
-  const handleLogout = () => {
-    setUser("");
-    localStorage.removeItem("activeUser");
-  };
-
-  const updateUserData = (newData) => {
-    setUsersData({
-      ...usersData,
-      [user]: {
-        ...activeUserData,
-        ...newData,
-      },
-    });
   };
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
+
     if (!file) return;
 
     const reader = new FileReader();
+
     reader.onloadend = () => {
-      updateUserData({ avatar: reader.result });
+      updateUser({ avatar: reader.result });
     };
+
     reader.readAsDataURL(file);
-  };
-
-  const handleRemoveAvatar = () => {
-    updateUserData({ avatar: "" });
-  };
-
-  const handleLike = () => {
-    updateUserData({ likes: activeUserData.likes + 1 });
   };
 
   const handleAddComment = () => {
     if (newComment.trim() === "") return;
 
-    updateUserData({
+    updateUser({
       comments: [
-        ...activeUserData.comments,
+        ...(activeUserData.comments || []),
         { name: user, text: newComment },
       ],
     });
@@ -101,6 +116,7 @@ function App() {
     setNewComment("");
   };
 
+  // --- LOGIN UI ---
   if (!user) {
     return (
       <div style={container}>
@@ -123,18 +139,19 @@ function App() {
     );
   }
 
+  // --- DASHBOARD ---
   return (
     <div style={container}>
       <div style={card}>
         <div style={topBar}>
           <h2 style={{ margin: 0 }}>🌟 Web Apresiasi</h2>
-          <button onClick={handleLogout} style={logoutBtn}>
+
+          <button onClick={logout} style={logoutBtn}>
             <FaSignOutAlt />
           </button>
         </div>
 
         <div style={profileSection}>
-          {/* FOTO PROFIL */}
           {activeUserData.avatar ? (
             <>
               <img
@@ -142,7 +159,11 @@ function App() {
                 alt="avatar"
                 style={avatarImage}
               />
-              <button onClick={handleRemoveAvatar} style={removeBtn}>
+
+              <button
+                onClick={() => updateUser({ avatar: "" })}
+                style={removeBtn}
+              >
                 <FaTrash /> Hapus Foto
               </button>
             </>
@@ -157,15 +178,14 @@ function App() {
             style={{ marginTop: "10px" }}
           />
 
-          {/* NAMA USER */}
           <h3 style={{ margin: "10px 0 5px" }}>
             {user.charAt(0).toUpperCase() + user.slice(1)}
           </h3>
 
-          {/* DESKRIPSI */}
           {!editDesc ? (
             <p style={descriptionText}>
               {activeUserData.description}
+
               <FaEdit
                 style={editIcon}
                 onClick={() => setEditDesc(true)}
@@ -176,10 +196,11 @@ function App() {
               <textarea
                 value={activeUserData.description}
                 onChange={(e) =>
-                  updateUserData({ description: e.target.value })
+                  updateUser({ description: e.target.value })
                 }
                 style={textarea}
               />
+
               <button
                 onClick={() => setEditDesc(false)}
                 style={primaryBtn}
@@ -189,7 +210,12 @@ function App() {
             </>
           )}
 
-          <button onClick={handleLike} style={likeBtn}>
+          <button
+            onClick={() =>
+              updateUser({ likes: activeUserData.likes + 1 })
+            }
+            style={likeBtn}
+          >
             ❤️ {activeUserData.likes}
           </button>
         </div>
@@ -213,16 +239,16 @@ function App() {
         </div>
 
         <div style={{ marginTop: "15px" }}>
-          {activeUserData.comments.length === 0 && (
+          {activeUserData.comments?.length === 0 && (
             <p style={{ color: "#777" }}>Belum ada komentar...</p>
           )}
 
-          {activeUserData.comments.map((c, index) => (
+          {activeUserData.comments?.map((c, index) => (
             <div key={index} style={commentItem}>
               <b>
-                {c.name.charAt(0).toUpperCase() +
-                  c.name.slice(1)}
+                {c.name.charAt(0).toUpperCase() + c.name.slice(1)}
               </b>
+
               <p style={{ margin: "5px 0 0" }}>{c.text}</p>
             </div>
           ))}
@@ -232,6 +258,7 @@ function App() {
   );
 }
 
+// --- STYLE ---
 const container = {
   minHeight: "100vh",
   display: "flex",
@@ -281,11 +308,7 @@ const removeBtn = {
 
 const descriptionText = { color: "#555", fontSize: "15px" };
 
-const editIcon = {
-  marginLeft: "8px",
-  cursor: "pointer",
-  fontSize: "14px",
-};
+const editIcon = { marginLeft: "8px", cursor: "pointer", fontSize: "14px" };
 
 const input = {
   width: "100%",
